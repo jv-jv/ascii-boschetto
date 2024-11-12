@@ -1,0 +1,26 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  height: 100dvh;
+  width: 100dvw;
+  border: 1px solid black;
+  display: block;
+  overflow: hidden;
+  font-size: 10px;
+  font-family: monospace;
+}
+
+.no-show {
+  display: none;
+}
+
+.title {
+  position: relative;
+  background-color: white;
+  z-index: 999;
+  display: inline-block;
+}
