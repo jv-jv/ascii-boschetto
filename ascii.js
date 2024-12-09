@@ -1,8 +1,22 @@
 import { trees } from "./trees.js";
 import { animals } from "./animals.js";
 
-const coordsArray = [];
-const minimumDistance = 150;
+const enforceMinimumDistance = ({ minimumDistance }) => {
+  const coordsArray = [];
+
+  const checkIfTooClose = (x, y) =>
+    coordsArray.some(
+      (coords) =>
+        x > coords.x - minimumDistance &&
+        x < coords.x + minimumDistance &&
+        y > coords.y - minimumDistance &&
+        y < coords.y + minimumDistance
+    );
+
+  const addToCoords = ({ x, y }) => coordsArray.push({ x, y });
+
+  return [checkIfTooClose, addToCoords];
+};
 
 const materialiseAscii = ({ ascii, element, interval }) => {
   for (let i = 0; i < ascii.length; i++) {
@@ -27,23 +41,20 @@ const addPre = (x, y) => {
   return newPre;
 };
 
+const [checkIfAsciiTooClose, addAsciiCoords] = enforceMinimumDistance({
+  minimumDistance: 150,
+});
+
 document.body.addEventListener("click", (args) => {
   const tree = retriveRandomAscii(trees);
 
   const y = window.innerHeight - args.clientY;
   const x = args.clientX;
 
-  const isTreeClose = coordsArray.some((coords) => {
-    return (
-      x > coords.x - minimumDistance &&
-      x < coords.x + minimumDistance &&
-      y > coords.y - minimumDistance &&
-      y < coords.y + minimumDistance
-    );
-  });
+  const isTreeClose = checkIfAsciiTooClose(x, y);
 
   if (!isTreeClose) {
-    coordsArray.push({ x, y });
+    addAsciiCoords({ x, y });
 
     const element = addPre(x, y);
 
@@ -61,11 +72,17 @@ document.body.addEventListener("wheel", (args) => {
   const y = window.innerHeight - args.clientY;
   const x = args.clientX;
 
-  const element = addPre(x, y);
+  const isAnimalClose = checkIfAsciiTooClose(x, y);
 
-  materialiseAscii({
-    ascii: animal,
-    element,
-    interval: 2,
-  });
+  if (!isAnimalClose) {
+    addAsciiCoords({ x, y });
+
+    const element = addPre(x, y);
+
+    materialiseAscii({
+      ascii: animal,
+      element,
+      interval: 2,
+    });
+  }
 });

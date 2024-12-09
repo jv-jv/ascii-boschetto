@@ -3,6 +3,7 @@
 *::after {
   box-sizing: border-box;
 }
+
 body {
   margin: 0;
   height: 100dvh;
@@ -12,10 +13,6 @@ body {
   overflow: hidden;
   font-size: 10px;
   font-family: monospace;
-}
-
-.no-show {
-  display: none;
 }
 
 .title {
