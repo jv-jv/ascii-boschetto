@@ -21,3 +21,16 @@ body {
   z-index: 999;
   display: inline-block;
 }
+
+@keyframes cutting {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(45deg);
+  }
+}
+
+.axe-cutting {
+  animation: cutting 0.5s linear infinite;
+}

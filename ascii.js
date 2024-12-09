@@ -1,6 +1,28 @@
 import { trees } from "./trees.js";
 import { animals } from "./animals.js";
 
+import { asciiElements } from "./asciiElements.js";
+// TODO
+// [] tooltip on ascii too close
+// [] toolbar to choose type of ascii to render
+// [x] axe to clear ascii
+// [] clear coords array
+
+let isAxeBeingPressed = false;
+let action = null;
+
+const ACTION_TYPES = {
+  ADD_TREE: "add-tree",
+  ADD_ANIMAL: "add-animal",
+  USE_AXE: "use-axe",
+};
+
+Object.values(ACTION_TYPES).forEach((value) => {
+  document.getElementById(value).onclick = () => {
+    action = value;
+  };
+});
+
 const enforceMinimumDistance = ({ minimumDistance }) => {
   const coordsArray = [];
 
@@ -26,9 +48,11 @@ const materialiseAscii = ({ ascii, element, interval }) => {
   }
 };
 
+const decodeAscii = (asciiObj) => atob(asciiObj.base64);
+
 const retriveRandomAscii = (asciiArray) => {
   const asciiObj = asciiArray[Math.floor(Math.random() * asciiArray.length)];
-  return atob(asciiObj.base64);
+  return decodeAscii(asciiObj);
 };
 
 const addPre = (x, y) => {
@@ -45,44 +69,66 @@ const [checkIfAsciiTooClose, addAsciiCoords] = enforceMinimumDistance({
   minimumDistance: 150,
 });
 
-document.body.addEventListener("click", (args) => {
-  const tree = retriveRandomAscii(trees);
+const addAscii = (AsciiType, x, y) => {
+  const ascii = retriveRandomAscii(AsciiType);
 
-  const y = window.innerHeight - args.clientY;
-  const x = args.clientX;
+  const isAsciiClose = checkIfAsciiTooClose(x, y);
 
-  const isTreeClose = checkIfAsciiTooClose(x, y);
-
-  if (!isTreeClose) {
+  if (!isAsciiClose) {
     addAsciiCoords({ x, y });
 
     const element = addPre(x, y);
 
     materialiseAscii({
-      ascii: tree,
+      ascii: ascii,
       element,
       interval: 2,
     });
   }
-});
+};
 
-document.body.addEventListener("wheel", (args) => {
-  const animal = retriveRandomAscii(animals);
+const axe = addPre(0, 0);
+axe.innerHTML = decodeAscii(asciiElements.tools.axe);
 
+document.body.addEventListener("click", (args) => {
   const y = window.innerHeight - args.clientY;
   const x = args.clientX;
 
-  const isAnimalClose = checkIfAsciiTooClose(x, y);
+  if (action === ACTION_TYPES.ADD_TREE) addAscii(trees, x, y);
 
-  if (!isAnimalClose) {
-    addAsciiCoords({ x, y });
+  if (action === ACTION_TYPES.ADD_ANIMAL) addAscii(animals, x, y);
+});
 
-    const element = addPre(x, y);
+document.body.addEventListener("mousedown", () => {
+  if (action === ACTION_TYPES.USE_AXE) {
+    axe.classList.add("axe-cutting");
+    isAxeBeingPressed = true;
+  }
+});
 
-    materialiseAscii({
-      ascii: animal,
-      element,
-      interval: 2,
-    });
+document.body.addEventListener("mouseup", () => {
+  if (action === ACTION_TYPES.USE_AXE) {
+    axe.classList.remove("axe-cutting");
+    isAxeBeingPressed = false;
+  }
+});
+
+document.body.addEventListener("mousemove", (args) => {
+  if (action === ACTION_TYPES.USE_AXE) {
+    const y = window.innerHeight - args.clientY;
+    const x = args.clientX;
+
+    axe.style.transform = "rotate(" + 25 + "deg)";
+
+    axe.style.bottom = y + "px";
+    axe.style.left = x + "px";
+
+    if (
+      args.target !== axe &&
+      args.target.tagName === "PRE" &&
+      isAxeBeingPressed
+    ) {
+      document.body.removeChild(args.target);
+    }
   }
 });
