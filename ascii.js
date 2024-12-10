@@ -108,6 +108,7 @@ document.body.addEventListener("mousemove", (args) => {
 });
 
 document.body.addEventListener("touchmove", (args) => {
+  args.preventDefault();
   if (action === ACTION_TYPES.USE_AXE) {
     axeMoveAndDelete(args);
   }
