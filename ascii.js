@@ -1,6 +1,3 @@
-import { trees } from "./trees.js";
-import { animals } from "./animals.js";
-
 import { asciiElements } from "./asciiElements.js";
 // TODO
 // [] tooltip on ascii too close
@@ -94,9 +91,9 @@ document.body.addEventListener("click", (args) => {
   const y = window.innerHeight - args.clientY;
   const x = args.clientX;
 
-  if (action === ACTION_TYPES.ADD_TREE) addAscii(trees, x, y);
+  if (action === ACTION_TYPES.ADD_TREE) addAscii(asciiElements.trees, x, y);
 
-  if (action === ACTION_TYPES.ADD_ANIMAL) addAscii(animals, x, y);
+  if (action === ACTION_TYPES.ADD_ANIMAL) addAscii(asciiElements.animals, x, y);
 });
 
 document.body.addEventListener("mousedown", () => {
