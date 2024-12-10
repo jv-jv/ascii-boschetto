@@ -1,11 +1,17 @@
 import { asciiElements } from "./asciiElements.js";
+import {
+  enforceMinimumDistance,
+  materialiseAscii,
+  decodeAscii,
+  retriveRandomAscii,
+  addPre,
+} from "./utils.js";
+
 // TODO
 // [] tooltip on ascii too close
 // [] toolbar to choose type of ascii to render
-// [x] axe to clear ascii
-// [] clear coords array
 
-let isAxeBeingPressed = false;
+// set action and behaviour
 let action = null;
 
 const ACTION_TYPES = {
@@ -20,51 +26,37 @@ Object.values(ACTION_TYPES).forEach((value) => {
   };
 });
 
-const enforceMinimumDistance = ({ minimumDistance }) => {
-  const coordsArray = [];
+const [checkIfAsciiTooClose, addAsciiCoords, removeFromCoords] =
+  enforceMinimumDistance({
+    minimumDistance: 150,
+  });
 
-  const checkIfTooClose = (x, y) =>
-    coordsArray.some(
-      (coords) =>
-        x > coords.x - minimumDistance &&
-        x < coords.x + minimumDistance &&
-        y > coords.y - minimumDistance &&
-        y < coords.y + minimumDistance
-    );
+// Axe
+const axe = addPre(0, 0);
+axe.innerHTML = decodeAscii(asciiElements.tools.axe);
+let isAxeBeingPressed = false;
 
-  const addToCoords = ({ x, y }) => coordsArray.push({ x, y });
+const axeMoveAndDelete = (args) => {
+  const y = window.innerHeight - args.clientY;
+  const x = args.clientX;
 
-  return [checkIfTooClose, addToCoords];
-};
+  axe.style.transform = "rotate(" + 25 + "deg)";
 
-const materialiseAscii = ({ ascii, element, interval }) => {
-  for (let i = 0; i < ascii.length; i++) {
-    setTimeout(() => {
-      element.innerHTML = ascii[ascii.length - 1 - i] + element.innerHTML;
-    }, i * interval);
+  axe.style.bottom = y + "px";
+  axe.style.left = x + "px";
+
+  if (
+    args.target !== axe &&
+    args.target.tagName === "PRE" &&
+    isAxeBeingPressed
+  ) {
+    const y = Number(args.target.style.bottom.split("px")[0]);
+    const x = Number(args.target.style.left.split("px")[0]);
+
+    removeFromCoords({ x, y });
+    document.body.removeChild(args.target);
   }
 };
-
-const decodeAscii = (asciiObj) => atob(asciiObj.base64);
-
-const retriveRandomAscii = (asciiArray) => {
-  const asciiObj = asciiArray[Math.floor(Math.random() * asciiArray.length)];
-  return decodeAscii(asciiObj);
-};
-
-const addPre = (x, y) => {
-  const newPre = document.createElement("pre");
-  newPre.style.position = "absolute";
-  newPre.style.bottom = y + "px";
-  newPre.style.left = x + "px";
-
-  document.body.appendChild(newPre);
-  return newPre;
-};
-
-const [checkIfAsciiTooClose, addAsciiCoords] = enforceMinimumDistance({
-  minimumDistance: 150,
-});
 
 const addAscii = (AsciiType, x, y) => {
   const ascii = retriveRandomAscii(AsciiType);
@@ -84,8 +76,7 @@ const addAscii = (AsciiType, x, y) => {
   }
 };
 
-const axe = addPre(0, 0);
-axe.innerHTML = decodeAscii(asciiElements.tools.axe);
+// Event listeners
 
 document.body.addEventListener("click", (args) => {
   const y = window.innerHeight - args.clientY;
@@ -112,20 +103,12 @@ document.body.addEventListener("mouseup", () => {
 
 document.body.addEventListener("mousemove", (args) => {
   if (action === ACTION_TYPES.USE_AXE) {
-    const y = window.innerHeight - args.clientY;
-    const x = args.clientX;
+    axeMoveAndDelete(args);
+  }
+});
 
-    axe.style.transform = "rotate(" + 25 + "deg)";
-
-    axe.style.bottom = y + "px";
-    axe.style.left = x + "px";
-
-    if (
-      args.target !== axe &&
-      args.target.tagName === "PRE" &&
-      isAxeBeingPressed
-    ) {
-      document.body.removeChild(args.target);
-    }
+document.body.addEventListener("touchmove", (args) => {
+  if (action === ACTION_TYPES.USE_AXE) {
+    axeMoveAndDelete(args);
   }
 });
